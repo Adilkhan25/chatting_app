@@ -1,6 +1,6 @@
 import 'package:chatting_app/models/user_details.dart';
 import 'package:flutter/material.dart';
-import 'package:chatting_app/common/drop_down.dart';
+import 'package:chatting_app/common/drop_down_validator.dart';
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
@@ -97,6 +97,7 @@ class _AuthScreenState extends State<AuthScreen> {
                         ),
                         TextButton(
                           onPressed: () {
+                            _formKey.currentState?.reset();
                             setState(() {
                               _isLoginMode = !_isLoginMode;
                             });
