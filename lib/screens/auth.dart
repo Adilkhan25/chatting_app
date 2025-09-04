@@ -1,6 +1,11 @@
 import 'package:chatting_app/models/user_details.dart';
 import 'package:flutter/material.dart';
 import 'package:chatting_app/common/drop_down_validator.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+//import 'package:cloud_firestore/cloud_firestore.dart';
+
+final FirebaseAuth _auth = FirebaseAuth.instance;
+// final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
@@ -12,11 +17,12 @@ class _AuthScreenState extends State<AuthScreen> {
   bool _isLoginMode = true;
   final _formKey = GlobalKey<FormState>();
   final _userDetails = UserDetails();
-  void _submitForm() {
-    if (_formKey.currentState!.validate()) {
-      _formKey.currentState!.save();
-      print('Form submitted: ${_userDetails.email}, ${_userDetails.password}');
+  void _submitForm() async {
+    if (!_formKey.currentState!.validate()) {
+      return;
     }
+    _formKey.currentState!.save();
+    _isLoginMode ? await logInuser() : await createAuthenticUser();
   }
 
   @override
@@ -178,5 +184,34 @@ class _AuthScreenState extends State<AuthScreen> {
         ],
       ),
     ];
+  }
+
+  Future<void> createAuthenticUser() async {
+    print('Creating user: ${_userDetails.email}, ${_userDetails.password}');
+    // Add your sign-up logic here
+    try {
+      final registeredUser = await _auth.createUserWithEmailAndPassword(
+        email: _userDetails.email,
+        password: _userDetails.password,
+      );
+      print('User registered: $registeredUser');
+      ScaffoldMessenger.of(context).clearSnackBars();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('User registered successfully! Please log in.')),
+      );
+      setState(() {
+        _isLoginMode = true;
+      });
+    } on FirebaseAuthException catch (e) {
+      ScaffoldMessenger.of(context).clearSnackBars();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.message ?? 'Authentication failed')),
+      );
+    }
+  }
+
+  Future<void> logInuser() async {
+    print('Logging in user: ${_userDetails.email}, ${_userDetails.password}');
+    // Add your login logic here
   }
 }
