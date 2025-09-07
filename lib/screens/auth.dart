@@ -196,12 +196,9 @@ class _AuthScreenState extends State<AuthScreen> {
       );
       print('User registered: $registeredUser');
       ScaffoldMessenger.of(context).clearSnackBars();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('User registered successfully! Please log in.')),
-      );
-      setState(() {
-        _isLoginMode = true;
-      });
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('User registered successfully!.')));
     } on FirebaseAuthException catch (e) {
       ScaffoldMessenger.of(context).clearSnackBars();
       ScaffoldMessenger.of(context).showSnackBar(
