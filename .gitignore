@@ -43,3 +43,26 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Firebase sensitive configs
+android/app/google-services.json
+ios/Runner/GoogleService-Info.plist
+lib/firebase_options.dart
+
+# FlutterFire / Firebase CLI
+firebase-debug.log
+.firebase/
+
+# Desktop ephemeral (auto-generated)
+windows/flutter/ephemeral/
+linux/flutter/ephemeral/
+macos/Flutter/ephemeral/
+
+# Xcode user-specific
+ios/Runner.xcworkspace/
+ios/Runner.xcodeproj/project.xcworkspace/
+ios/Runner.xcodeproj/xcuserdata/
+
+# Swift Package Manager artifacts (if using Swift deps on iOS/macOS)
+.swiftpm/
+
