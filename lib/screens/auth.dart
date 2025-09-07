@@ -211,7 +211,17 @@ class _AuthScreenState extends State<AuthScreen> {
   }
 
   Future<void> logInuser() async {
-    print('Logging in user: ${_userDetails.email}, ${_userDetails.password}');
-    // Add your login logic here
+    try {
+      final loggedInUser = await _auth.signInWithEmailAndPassword(
+        email: _userDetails.email,
+        password: _userDetails.password,
+      );
+      print('User logged in: $loggedInUser');
+    } on FirebaseAuthException catch (e) {
+      ScaffoldMessenger.of(context).clearSnackBars();
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(e.message ?? 'Login failed')));
+    }
   }
 }
