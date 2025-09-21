@@ -54,9 +54,9 @@ firebase-debug.log
 .firebase/
 
 # Desktop ephemeral (auto-generated)
-windows/
-linux/
-macos/
+windows/flutter/ephemeral/
+linux/flutter/ephemeral/
+macos/flutter/ephemeral/
 
 # Xcode user-specific
 ios/Runner.xcworkspace/
