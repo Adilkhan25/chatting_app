@@ -1,4 +1,5 @@
 import 'package:chatting_app/models/user_details.dart';
+import 'package:chatting_app/widgets/user_image_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:chatting_app/common/drop_down_validator.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -54,6 +55,7 @@ class _AuthScreenState extends State<AuthScreen> {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
+                        if (_isLoginMode == false) UserImagePicker(),
                         TextFormField(
                           decoration: InputDecoration(labelText: 'Email'),
                           keyboardType: TextInputType.emailAddress,
