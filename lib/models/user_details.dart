@@ -1,9 +1,11 @@
+import 'dart:io';
+
 class UserDetails {
   final String id = '';
   String email = '';
   String firstName = '';
   String lastName = '';
-  String? imageUrl = '';
+  File? profilePic;
   String password = '';
   String age = '';
   String gender = '';

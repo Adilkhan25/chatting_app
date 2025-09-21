@@ -1,8 +1,11 @@
 import 'package:chatting_app/models/user_details.dart';
+import 'package:chatting_app/services/auth_service.dart';
+import 'package:chatting_app/services/storage_service.dart';
 import 'package:chatting_app/widgets/user_image_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:chatting_app/common/drop_down_validator.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 //import 'package:cloud_firestore/cloud_firestore.dart';
 
 final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -20,6 +23,13 @@ class _AuthScreenState extends State<AuthScreen> {
   final _userDetails = UserDetails();
   void _submitForm() async {
     if (!_formKey.currentState!.validate()) {
+      return;
+    }
+    if (!_isLoginMode && _userDetails.profilePic == null) {
+      ScaffoldMessenger.of(context).clearSnackBars();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: const Text('Please pick the profile image')),
+      );
       return;
     }
     _formKey.currentState!.save();
@@ -55,7 +65,11 @@ class _AuthScreenState extends State<AuthScreen> {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        if (_isLoginMode == false) UserImagePicker(),
+                        if (_isLoginMode == false)
+                          UserImagePicker(
+                            onImagePicked: (pickedImage) =>
+                                _userDetails.profilePic = pickedImage,
+                          ),
                         TextFormField(
                           decoration: InputDecoration(labelText: 'Email'),
                           keyboardType: TextInputType.emailAddress,
@@ -196,6 +210,10 @@ class _AuthScreenState extends State<AuthScreen> {
         email: _userDetails.email,
         password: _userDetails.password,
       );
+      final profileImageUrl = await StorageService.uploadProfilePictureFromFile(
+        _userDetails.profilePic!,
+      );
+      print('Profile Image URL: $profileImageUrl');
       print('User registered: $registeredUser');
       ScaffoldMessenger.of(context).clearSnackBars();
       ScaffoldMessenger.of(
@@ -215,6 +233,7 @@ class _AuthScreenState extends State<AuthScreen> {
         email: _userDetails.email,
         password: _userDetails.password,
       );
+      await AuthService.signInExistingSupabaseUser();
       print('User logged in: $loggedInUser');
     } on FirebaseAuthException catch (e) {
       ScaffoldMessenger.of(context).clearSnackBars();
