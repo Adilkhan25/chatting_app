@@ -1,11 +1,13 @@
 import 'package:chatting_app/models/user_details.dart';
+import 'package:chatting_app/services/auth_service.dart';
+import 'package:chatting_app/services/database_service.dart';
+import 'package:chatting_app/services/storage_service.dart';
+import 'package:chatting_app/widgets/user_image_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:chatting_app/common/drop_down_validator.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-//import 'package:cloud_firestore/cloud_firestore.dart';
 
 final FirebaseAuth _auth = FirebaseAuth.instance;
-// final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
@@ -15,10 +17,18 @@ class AuthScreen extends StatefulWidget {
 
 class _AuthScreenState extends State<AuthScreen> {
   bool _isLoginMode = true;
+  bool isAuthenticating = false;
   final _formKey = GlobalKey<FormState>();
   final _userDetails = UserDetails();
   void _submitForm() async {
     if (!_formKey.currentState!.validate()) {
+      return;
+    }
+    if (!_isLoginMode && _userDetails.profilePic == null) {
+      ScaffoldMessenger.of(context).clearSnackBars();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: const Text('Please pick the profile image')),
+      );
       return;
     }
     _formKey.currentState!.save();
@@ -54,6 +64,11 @@ class _AuthScreenState extends State<AuthScreen> {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
+                        if (_isLoginMode == false)
+                          UserImagePicker(
+                            onImagePicked: (pickedImage) =>
+                                _userDetails.profilePic = pickedImage,
+                          ),
                         TextFormField(
                           decoration: InputDecoration(labelText: 'Email'),
                           keyboardType: TextInputType.emailAddress,
@@ -92,6 +107,8 @@ class _AuthScreenState extends State<AuthScreen> {
                           },
                         ),
                         const SizedBox(height: 12),
+                        if (isAuthenticating) CircularProgressIndicator(),
+                        if (!isAuthenticating)
                         ElevatedButton(
                           onPressed: _submitForm,
                           style: ElevatedButton.styleFrom(
@@ -101,6 +118,7 @@ class _AuthScreenState extends State<AuthScreen> {
                           ),
                           child: Text(_isLoginMode ? 'Login' : 'Sign Up'),
                         ),
+                        if (!isAuthenticating)
                         TextButton(
                           onPressed: () {
                             _formKey.currentState?.reset();
@@ -150,7 +168,7 @@ class _AuthScreenState extends State<AuthScreen> {
         validator: (value) => (value == null || value.isEmpty)
             ? 'Please enter your age name'
             : null,
-        onSaved: (value) => _userDetails.lastName = value ?? '',
+        onSaved: (value) => _userDetails.age = value ?? '',
       ),
       Row(
         children: [
@@ -190,19 +208,36 @@ class _AuthScreenState extends State<AuthScreen> {
     print('Creating user: ${_userDetails.email}, ${_userDetails.password}');
     // Add your sign-up logic here
     try {
+      setState(() {
+        isAuthenticating = true;
+      });
+
+      // Create user in Firebase Auth
       final registeredUser = await _auth.createUserWithEmailAndPassword(
         email: _userDetails.email,
         password: _userDetails.password,
       );
+       _userDetails.id = registeredUser.user?.uid ?? '';
+      // Create or sign in user in Supabase Auth and store image on Supabase Storage
+      final profileImageUrl = await StorageService.uploadProfilePictureFromFile(
+        _userDetails.profilePic!,
+      );
+      _userDetails.imageUrl = profileImageUrl;
+      
+      // Store additional user details in Firestore
+      await DatabaseService.createUserProfile(
+        userDetails: _userDetails,
+      );
+      print('Profile Image URL: $profileImageUrl');
       print('User registered: $registeredUser');
       ScaffoldMessenger.of(context).clearSnackBars();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('User registered successfully! Please log in.')),
-      );
-      setState(() {
-        _isLoginMode = true;
-      });
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('User registered successfully!.')));
     } on FirebaseAuthException catch (e) {
+      setState(() {
+        isAuthenticating = false;
+      });
       ScaffoldMessenger.of(context).clearSnackBars();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(e.message ?? 'Authentication failed')),
@@ -212,12 +247,19 @@ class _AuthScreenState extends State<AuthScreen> {
 
   Future<void> logInuser() async {
     try {
+      setState(() {
+        isAuthenticating = true;
+      });
       final loggedInUser = await _auth.signInWithEmailAndPassword(
         email: _userDetails.email,
         password: _userDetails.password,
       );
+      await AuthService.signInExistingSupabaseUser();
       print('User logged in: $loggedInUser');
     } on FirebaseAuthException catch (e) {
+      setState(() {
+        isAuthenticating = false;
+      });
       ScaffoldMessenger.of(context).clearSnackBars();
       ScaffoldMessenger.of(
         context,
