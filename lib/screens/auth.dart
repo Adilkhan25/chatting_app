@@ -1,5 +1,6 @@
 import 'package:chatting_app/models/user_details.dart';
 import 'package:chatting_app/services/auth_service.dart';
+import 'package:chatting_app/services/database_service.dart';
 import 'package:chatting_app/services/storage_service.dart';
 import 'package:chatting_app/widgets/user_image_picker.dart';
 import 'package:flutter/material.dart';
@@ -167,7 +168,7 @@ class _AuthScreenState extends State<AuthScreen> {
         validator: (value) => (value == null || value.isEmpty)
             ? 'Please enter your age name'
             : null,
-        onSaved: (value) => _userDetails.lastName = value ?? '',
+        onSaved: (value) => _userDetails.age = value ?? '',
       ),
       Row(
         children: [
@@ -210,12 +211,22 @@ class _AuthScreenState extends State<AuthScreen> {
       setState(() {
         isAuthenticating = true;
       });
+
+      // Create user in Firebase Auth
       final registeredUser = await _auth.createUserWithEmailAndPassword(
         email: _userDetails.email,
         password: _userDetails.password,
       );
+       _userDetails.id = registeredUser.user?.uid ?? '';
+      // Create or sign in user in Supabase Auth and store image on Supabase Storage
       final profileImageUrl = await StorageService.uploadProfilePictureFromFile(
         _userDetails.profilePic!,
+      );
+      _userDetails.imageUrl = profileImageUrl;
+      
+      // Store additional user details in Firestore
+      await DatabaseService.createUserProfile(
+        userDetails: _userDetails,
       );
       print('Profile Image URL: $profileImageUrl');
       print('User registered: $registeredUser');
