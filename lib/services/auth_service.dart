@@ -16,7 +16,7 @@ class AuthService {
     final firebaseUser = FirebaseAuth.instance.currentUser!;
     // Create a valid email format using Firebase UID
     final userSha256 = _uidToEmail(firebaseUser.uid);
-    final supabaseEmail = 'user_$userSha256@firebase.app';
+    final supabaseEmail = firebaseUser.email;
     final supabasePassword = 'fb_${userSha256}_pw';
 
     final response = await _supabase.auth.signUp(
@@ -43,7 +43,7 @@ class AuthService {
     // Use the same email format for sign in
     // Create a valid email format using Firebase UID
     final userSha256 = _uidToEmail(firebaseUser.uid);
-    final supabaseEmail = 'user_$userSha256@firebase.app';
+    final supabaseEmail = firebaseUser.email;
     final supabasePassword = 'fb_${userSha256}_pw';
     try {
       final response = await _supabase.auth.signInWithPassword(
