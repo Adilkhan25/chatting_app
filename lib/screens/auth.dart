@@ -5,11 +5,8 @@ import 'package:chatting_app/widgets/user_image_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:chatting_app/common/drop_down_validator.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_storage/firebase_storage.dart';
-//import 'package:cloud_firestore/cloud_firestore.dart';
 
 final FirebaseAuth _auth = FirebaseAuth.instance;
-// final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
@@ -19,6 +16,7 @@ class AuthScreen extends StatefulWidget {
 
 class _AuthScreenState extends State<AuthScreen> {
   bool _isLoginMode = true;
+  bool isAuthenticating = false;
   final _formKey = GlobalKey<FormState>();
   final _userDetails = UserDetails();
   void _submitForm() async {
@@ -108,6 +106,8 @@ class _AuthScreenState extends State<AuthScreen> {
                           },
                         ),
                         const SizedBox(height: 12),
+                        if (isAuthenticating) CircularProgressIndicator(),
+                        if (!isAuthenticating)
                         ElevatedButton(
                           onPressed: _submitForm,
                           style: ElevatedButton.styleFrom(
@@ -117,6 +117,7 @@ class _AuthScreenState extends State<AuthScreen> {
                           ),
                           child: Text(_isLoginMode ? 'Login' : 'Sign Up'),
                         ),
+                        if (!isAuthenticating)
                         TextButton(
                           onPressed: () {
                             _formKey.currentState?.reset();
@@ -206,6 +207,9 @@ class _AuthScreenState extends State<AuthScreen> {
     print('Creating user: ${_userDetails.email}, ${_userDetails.password}');
     // Add your sign-up logic here
     try {
+      setState(() {
+        isAuthenticating = true;
+      });
       final registeredUser = await _auth.createUserWithEmailAndPassword(
         email: _userDetails.email,
         password: _userDetails.password,
@@ -220,6 +224,9 @@ class _AuthScreenState extends State<AuthScreen> {
         context,
       ).showSnackBar(SnackBar(content: Text('User registered successfully!.')));
     } on FirebaseAuthException catch (e) {
+      setState(() {
+        isAuthenticating = false;
+      });
       ScaffoldMessenger.of(context).clearSnackBars();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(e.message ?? 'Authentication failed')),
@@ -229,6 +236,9 @@ class _AuthScreenState extends State<AuthScreen> {
 
   Future<void> logInuser() async {
     try {
+      setState(() {
+        isAuthenticating = true;
+      });
       final loggedInUser = await _auth.signInWithEmailAndPassword(
         email: _userDetails.email,
         password: _userDetails.password,
@@ -236,6 +246,9 @@ class _AuthScreenState extends State<AuthScreen> {
       await AuthService.signInExistingSupabaseUser();
       print('User logged in: $loggedInUser');
     } on FirebaseAuthException catch (e) {
+      setState(() {
+        isAuthenticating = false;
+      });
       ScaffoldMessenger.of(context).clearSnackBars();
       ScaffoldMessenger.of(
         context,
