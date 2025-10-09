@@ -1,3 +1,4 @@
+import 'package:chatting_app/services/database_service.dart';
 import 'package:flutter/material.dart';
 
 class NewMessage extends StatefulWidget {
@@ -9,13 +10,14 @@ class NewMessage extends StatefulWidget {
 class _NewMessageState extends State<NewMessage> {
   final _controller = TextEditingController();
 
-  void _sendMessage() {
+  void _sendMessage() async {
     final enteredMessage = _controller.text;
     if (enteredMessage.trim().isEmpty) {
       return;
     }
+    FocusScope.of(context).unfocus();
     // Add your send message logic here
-    print('Message sent: $enteredMessage');
+    await DatabaseService.sendMessage(enteredMessage);
     _controller.clear();
   }
 
