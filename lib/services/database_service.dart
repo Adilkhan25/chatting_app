@@ -1,3 +1,4 @@
+import 'package:chatting_app/models/message.dart';
 import 'package:chatting_app/models/user_details.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -68,5 +69,23 @@ class DatabaseService {
     } catch (e) {
       print('Error sending message: $e');
     }
+  }
+
+  // Fetch messages from Firestore
+  static Stream<List<Message>> getMessagesStream() {
+    return _firestore
+        .collection('messages')
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .map(
+          (snapshot) => snapshot.docs.map((doc) {
+            return Message(
+              text: doc['text'] ?? '',
+              senderId: doc['userId'] ?? '',
+              senderName: doc['firstName'] ?? 'Unknown',
+              senderProfilePicUrl: doc['profilePicUrl'] ?? '',
+            );
+          }).toList(),
+        );
   }
 }
