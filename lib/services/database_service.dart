@@ -73,19 +73,24 @@ class DatabaseService {
 
   // Fetch messages from Firestore
   static Stream<List<Message>> getMessagesStream() {
-    return _firestore
-        .collection('messages')
-        .orderBy('createdAt', descending: true)
-        .snapshots()
-        .map(
-          (snapshot) => snapshot.docs.map((doc) {
-            return Message(
-              text: doc['text'] ?? '',
-              senderId: doc['userId'] ?? '',
-              senderName: doc['firstName'] ?? 'Unknown',
-              senderProfilePicUrl: doc['profilePicUrl'] ?? '',
-            );
-          }).toList(),
-        );
+    try {
+      return _firestore
+          .collection('messages')
+          .orderBy('createdAt', descending: true)
+          .snapshots()
+          .map(
+            (snapshot) => snapshot.docs.map((doc) {
+              return Message(
+                text: doc['text'] ?? '',
+                senderId: doc['userId'] ?? '',
+                senderName: doc['firstName'] ?? 'Unknown',
+                senderProfilePicUrl: doc['profilePicUrl'] ?? '',
+              );
+            }).toList(),
+          );
+    } catch (e) {
+      print('Error fetching messages: $e');
+      return Stream.value([]);
+    }
   }
 }

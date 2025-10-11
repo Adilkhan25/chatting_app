@@ -1,5 +1,7 @@
 import 'package:chatting_app/models/message.dart';
 import 'package:chatting_app/services/database_service.dart';
+import 'package:chatting_app/widgets/chat_message_bubble.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class ChatMessages extends StatelessWidget {
@@ -25,19 +27,32 @@ class ChatMessages extends StatelessWidget {
           itemCount: messages.length,
           itemBuilder: (ctx, index) {
             final message = messages[index];
-            return ListTile(
-              leading: CircleAvatar(
-                backgroundImage: NetworkImage(message.senderProfilePicUrl),
-              ),
-              title: Text(message.senderName),
-              subtitle: Text(message.text),
-            );
+            final isMe =
+                message.senderId == FirebaseAuth.instance.currentUser?.uid;
+            final isFirstInSequence =
+                index == 0 || messages[index - 1].senderId != message.senderId;
+            if (isFirstInSequence) {
+              return MessageBubble.first(
+                key: ValueKey(
+                  message.text + message.senderId + index.toString(),
+                ),
+                userImage: message.senderProfilePicUrl,
+                username: message.senderName,
+                message: message.text,
+                isMe: isMe,
+              );
+            } else {
+              return MessageBubble.next(
+                key: ValueKey(
+                  message.text + message.senderId + index.toString(),
+                ),
+                message: message.text,
+                isMe: isMe,
+              );
+            }
           },
         );
       },
     );
-    // return const Center(
-    //   child: Text('Chat Messages'),
-    // );
   }
 }
