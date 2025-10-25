@@ -4,6 +4,13 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class AppConfig {
+  static Future<bool> markUserLoggedIn({
+    bool isLoggedIn = false,
+    bool isNewUser = false,
+  }) async {
+    return isNewUser ? isLoggedIn : true;
+  }
+
   static Future<void> initialize() async {
     // Load env variables (for Supabase keys)
     await dotenv.load();

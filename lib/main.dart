@@ -1,6 +1,7 @@
 import 'package:chatting_app/core/config/app_config.dart';
 import 'package:chatting_app/screens/auth.dart';
 import 'package:chatting_app/screens/chat_screen.dart';
+import 'package:chatting_app/screens/error_screen.dart';
 import 'package:chatting_app/screens/splash_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -29,8 +30,25 @@ class App extends StatelessWidget {
           if (userSnapshot.connectionState == ConnectionState.waiting) {
             return SplashScreen();
           }
+          if (userSnapshot.hasError) {
+            return const ErrorScreen(message: 'Authentication failed');
+          }
           if (userSnapshot.hasData) {
-            return const ChatScreen();
+            return FutureBuilder(
+              future: AppConfig.markUserLoggedIn(),
+              builder: (ctx, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return SplashScreen();
+                } else {
+                  if (snapshot.data == false) {
+                    return SplashScreen();
+                  } else if (snapshot.hasError) {
+                    return const ErrorScreen(message: 'Failed to store the data on Firebase or Supabase');
+                  }
+                  return ChatScreen();
+                }
+              },
+            );
           }
           return const AuthScreen();
         },

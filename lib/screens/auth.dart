@@ -1,3 +1,4 @@
+import 'package:chatting_app/core/config/app_config.dart';
 import 'package:chatting_app/models/user_details.dart';
 import 'package:chatting_app/services/auth_service.dart';
 import 'package:chatting_app/services/database_service.dart';
@@ -109,29 +110,29 @@ class _AuthScreenState extends State<AuthScreen> {
                         const SizedBox(height: 12),
                         if (isAuthenticating) CircularProgressIndicator(),
                         if (!isAuthenticating)
-                        ElevatedButton(
-                          onPressed: _submitForm,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Theme.of(
-                              context,
-                            ).colorScheme.primaryContainer,
+                          ElevatedButton(
+                            onPressed: _submitForm,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Theme.of(
+                                context,
+                              ).colorScheme.primaryContainer,
+                            ),
+                            child: Text(_isLoginMode ? 'Login' : 'Sign Up'),
                           ),
-                          child: Text(_isLoginMode ? 'Login' : 'Sign Up'),
-                        ),
                         if (!isAuthenticating)
-                        TextButton(
-                          onPressed: () {
-                            _formKey.currentState?.reset();
-                            setState(() {
-                              _isLoginMode = !_isLoginMode;
-                            });
-                          },
-                          child: Text(
-                            _isLoginMode
-                                ? 'Create new account'
-                                : 'I already have an account',
+                          TextButton(
+                            onPressed: () {
+                              _formKey.currentState?.reset();
+                              setState(() {
+                                _isLoginMode = !_isLoginMode;
+                              });
+                            },
+                            child: Text(
+                              _isLoginMode
+                                  ? 'Create new account'
+                                  : 'I already have an account',
+                            ),
                           ),
-                        ),
                       ],
                     ),
                   ),
@@ -217,17 +218,17 @@ class _AuthScreenState extends State<AuthScreen> {
         email: _userDetails.email,
         password: _userDetails.password,
       );
-       _userDetails.id = registeredUser.user?.uid ?? '';
+      _userDetails.id = registeredUser.user?.uid ?? '';
       // Create or sign in user in Supabase Auth and store image on Supabase Storage
       final profileImageUrl = await StorageService.uploadProfilePictureFromFile(
         _userDetails.profilePic!,
       );
       _userDetails.imageUrl = profileImageUrl;
-      
+
       // Store additional user details in Firestore
-      await DatabaseService.createUserProfile(
-        userDetails: _userDetails,
-      );
+      await DatabaseService.createUserProfile(userDetails: _userDetails);
+      // User can move to chat screen after successful registration
+      AppConfig.markUserLoggedIn(isLoggedIn: true, isNewUser: true);
       print('Profile Image URL: $profileImageUrl');
       print('User registered: $registeredUser');
       ScaffoldMessenger.of(context).clearSnackBars();
