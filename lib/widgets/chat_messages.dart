@@ -2,10 +2,31 @@ import 'package:chatting_app/models/message.dart';
 import 'package:chatting_app/services/database_service.dart';
 import 'package:chatting_app/widgets/chat_message_bubble.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 
-class ChatMessages extends StatelessWidget {
+class ChatMessages extends StatefulWidget {
   const ChatMessages({super.key});
+
+  @override
+  State<ChatMessages> createState() => _ChatMessagesState();
+}
+
+class _ChatMessagesState extends State<ChatMessages> {
+  
+  Future<void> setUpPushNotifications() async {
+    // Placeholder for push notification setup logic
+    final fcm = FirebaseMessaging.instance;
+    await fcm.requestPermission();
+    final token = await fcm.getToken();
+    print("FCM Token: $token");
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    setUpPushNotifications();
+  }
 
   @override
   Widget build(BuildContext context) {
