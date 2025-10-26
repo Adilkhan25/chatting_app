@@ -29,8 +29,9 @@ class ChatMessages extends StatelessWidget {
             final message = messages[index];
             final isMe =
                 message.senderId == FirebaseAuth.instance.currentUser?.uid;
-            final isFirstInSequence =
-                index == 0 || messages[index - 1].senderId != message.senderId;
+            final isFirstInSequence = index + 1 < messages.length
+                ? messages[index + 1].senderId != message.senderId
+                : true;
             if (isFirstInSequence) {
               return MessageBubble.first(
                 key: ValueKey(
